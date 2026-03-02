@@ -1,4 +1,4 @@
-# Data Engineering Challenge — Interview Assignment
+# Data Engineering Challenge - Interview Assignment
 
 This challenge evaluates ingestion, transformation, orchestration, and database design using **Shopify-style data** (customers, orders, products) in the `DATA/` folder. Use the metadata docs in `DATA/` to understand the JSONL structure.
 
@@ -42,8 +42,8 @@ This challenge evaluates ingestion, transformation, orchestration, and database 
 Define and implement **four distinct roles** in Postgres and document the exact privileges (e.g. in a `docs/` or `scripts/` file):
 
 1. **Developer**  
-   - Can read/write in development/staging schemas (e.g. `staging`, `dev`).  
-   - No direct DDL/DML on production analytics schemas if you separate them; or document how you restrict prod.
+   - Can read/write in development/staging schemas (e.g. `staging`, `dev`, `prod`).  
+   - No direct DDL/DML on production analytics schemas.
 
 2. **Ingestion tool (Airbyte)**  
    - Only writes (and reads if needed for upserts) into the **raw/ingestion** schema.  
