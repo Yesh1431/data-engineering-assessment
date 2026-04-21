@@ -1,13 +1,16 @@
-name: dbt CI
+name: dbt CI/CD
 
 on:
-  push:
-    branches:
-      - feature/**
   pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
 
 jobs:
-  dbt-build:
+  staging:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     services:
@@ -58,7 +61,7 @@ jobs:
             sleep 2
           done
 
-      - name: Initialize raw schema and seed raw tables
+      - name: Initialize raw schema and seed tables
         env:
           PGPASSWORD: postgres
         run: |
@@ -67,5 +70,69 @@ jobs:
       - name: dbt debug
         run: dbt debug --project-dir dbt --profiles-dir dbt --target dev
 
-      - name: dbt build
+      - name: dbt build (staging)
         run: dbt build --project-dir dbt --profiles-dir dbt --target dev
+
+  production:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: assessment
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d assessment"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DBT_HOST: 127.0.0.1
+      DBT_PORT: 5432
+      DBT_USER: postgres
+      DBT_PASSWORD: postgres
+      DBT_DBNAME: assessment
+      DBT_SCHEMA: prod
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install dbt
+        run: pip install dbt-postgres==1.9.0
+
+      - name: Wait for Postgres
+        env:
+          PGPASSWORD: postgres
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres -d assessment; do
+            sleep 2
+          done
+
+      - name: Initialize raw schema and seed tables
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -U postgres -d assessment -f scripts/init.sql
+
+      - name: dbt debug
+        run: dbt debug --project-dir dbt --profiles-dir dbt --target prod
+
+      - name: dbt build (production)
+        run: dbt build --project-dir dbt --profiles-dir dbt --target prod
