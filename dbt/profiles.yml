@@ -3,20 +3,20 @@ de_assessment:
   outputs:
     dev:
       type: postgres
-      host: de_postgres
-      port: 5432
-      user: postgres
-      password: postgres
-      dbname: assessment
-      schema: dev
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_USER', 'postgres') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'assessment') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'dev') }}"
       threads: 4
 
     prod:
       type: postgres
-      host: de_postgres
-      port: 5432
-      user: postgres
-      password: postgres
-      dbname: assessment
-      schema: prod
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_USER', 'postgres') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'assessment') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'prod') }}"
       threads: 4
