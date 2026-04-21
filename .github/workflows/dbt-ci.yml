@@ -23,7 +23,7 @@ jobs:
           --health-cmd="pg_isready -U postgres -d assessment"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     env:
       DBT_HOST: 127.0.0.1
@@ -51,21 +51,21 @@ jobs:
         run: pip install dbt-postgres==1.9.0
 
       - name: Wait for Postgres
+        env:
+          PGPASSWORD: postgres
         run: |
           until pg_isready -h 127.0.0.1 -p 5432 -U postgres -d assessment; do
             sleep 2
           done
+
+      - name: Initialize raw schema and seed raw tables
         env:
           PGPASSWORD: postgres
-
-      - name: Create raw schema and tables
         run: |
-          psql -h 127.0.0.1 -U postgres -d assessment -c "CREATE SCHEMA IF NOT EXISTS raw;"
-        env:
-          PGPASSWORD: postgres
+          psql -h 127.0.0.1 -U postgres -d assessment -f scripts/init.sql
 
-      - name: Run dbt debug
+      - name: dbt debug
         run: dbt debug --project-dir dbt --profiles-dir dbt --target dev
 
-      - name: Run dbt build
+      - name: dbt build
         run: dbt build --project-dir dbt --profiles-dir dbt --target dev
