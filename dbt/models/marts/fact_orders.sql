@@ -1,7 +1,6 @@
 select
     order_id,
     customer_id,
-    email,
     order_name,
     order_number,
     currency,
@@ -11,9 +10,8 @@ select
     subtotal_price,
     total_tax,
     total_discounts,
-    created_at_epoch,
     created_at_utc,
+    updated_at_utc,
     cancelled_at,
-    portable_extracted_at,
-    _airbyte_extracted_at
+    processed_at
 from {{ ref('stg_orders') }}
