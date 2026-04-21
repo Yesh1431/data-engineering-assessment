@@ -385,15 +385,3 @@ Validated successfully:
 - Core analytical outputs available in marts
 - Git branch pushed successfully
 
-## Notes for Presentation
-
-For the panel walkthrough, the cleanest flow is:
-
-1. Show Airbyte source and destination
-2. Show raw tables in Postgres
-3. Show dbt project structure
-4. Run dbt
-5. Query staging and mart outputs
-6. Show Git branch and PR-ready repository
-
-That demonstrates ingestion, transformation, validation, and version control end to end.
