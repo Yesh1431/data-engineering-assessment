@@ -362,9 +362,9 @@ Typical workflow usage:
 - Run dbt run for target environment
 - Optionally run dbt test if tests are configured and selected in workflow
 
-## Assumptions
+## Challenges
 
-Assumptions made during implementation:
+Assumptions made during Challenges:
 
 1. The Shopify sample files are line-delimited JSON and should be ingested as JSONL.
 2. Airbyte writes source data into the `raw` schema.
