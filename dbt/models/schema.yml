@@ -4,35 +4,35 @@ models:
   - name: stg_customers
     columns:
       - name: customer_id
-        data_data_tests:
+        data_tests:
           - not_null
           - unique
 
   - name: stg_products
     columns:
       - name: product_id
-        data_data_tests:
+        data_tests:
           - not_null
           - unique
 
   - name: stg_orders
     columns:
       - name: order_id
-        data_data_tests:
+        data_tests:
           - not_null
           - unique
       - name: financial_status
-        data_data_tests:
+        data_tests:
           - accepted_values:
               values: ['paid', 'pending', 'refunded']
       - name: fulfillment_status
-        data_data_tests:
+        data_tests:
           - accepted_values:
               values: ['fulfilled', 'partial', 'unfulfilled']
 
   - name: fact_orders
     columns:
       - name: order_id
-        data_data_tests:
+        data_tests:
           - not_null
           - unique
