@@ -1,0 +1,19 @@
+name: 'de_assessment'
+version: '1.0.0'
+config-version: 2
+
+profile: 'de_assessment'
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  de_assessment:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: view
