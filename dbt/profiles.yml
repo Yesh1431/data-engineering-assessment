@@ -3,7 +3,7 @@ de_assessment:
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('DBT_HOST', 'de_postgres') }}"
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
       port: "{{ env_var('DBT_PORT', '5432') | int }}"
       user: "{{ env_var('DBT_USER', 'postgres') }}"
       password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
@@ -13,7 +13,7 @@ de_assessment:
 
     prod:
       type: postgres
-      host: "{{ env_var('DBT_HOST', 'de_postgres') }}"
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
       port: "{{ env_var('DBT_PORT', '5432') | int }}"
       user: "{{ env_var('DBT_USER', 'postgres') }}"
       password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
