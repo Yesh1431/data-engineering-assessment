@@ -1,23 +1,22 @@
-# dbt profiles.yml
-
-default:
+de_assessment:
   target: dev
   outputs:
     dev:
       type: postgres
-      threads: 1
-      host: {env:DBT_HOST} # Replaced hardcoded host with environment variable
-      port: {env:DBT_PORT}
-      user: {env:DBT_USER}
-      password: {env:DBT_PASSWORD}
-      dbname: {env:DBT_DBNAME}
-      schema: {env:DBT_SCHEMA} # Replaced hardcoded schema with environment variable
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_USER', 'postgres') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'assessment') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'dev') }}"
+      threads: 4
+
     prod:
       type: postgres
-      threads: 2
-      host: de_postgres
-      port: 5432
-      user: prod_user
-      password: prod_password
-      dbname: prod_dbname
-      schema: prod_schema
+      host: "{{ env_var('DBT_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      user: "{{ env_var('DBT_USER', 'postgres') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'postgres') }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'assessment') }}"
+      schema: prod
+      threads: 4
