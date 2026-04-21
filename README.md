@@ -374,7 +374,6 @@ Assumptions made during Challenges:
 6. Some nested Shopify fields require flattening or selective extraction in staging models.
 7. This solution prioritizes clarity and completeness for the assessment over production-grade orchestration hardening.
 
-## Validation Summary
 
 Validated successfully:
 
