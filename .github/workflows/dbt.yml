@@ -1,0 +1,124 @@
+name: dbt-ci-cd
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feature/**]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "dbt target to run"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  dbt-staging:
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'staging'
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_HOST: ${{ secrets.DBT_HOST_STAGING }}
+      DBT_PORT: ${{ secrets.DBT_PORT_STAGING }}
+      DBT_USER: ${{ secrets.DBT_USER_STAGING }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD_STAGING }}
+      DBT_DBNAME: ${{ secrets.DBT_DBNAME_STAGING }}
+      DBT_SCHEMA: ${{ secrets.DBT_SCHEMA_STAGING }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt-postgres
+        run: pip install dbt-postgres==1.9.0
+
+      - name: Create dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          de_assessment:
+            target: staging
+            outputs:
+              staging:
+                type: postgres
+                host: ${DBT_HOST}
+                port: ${DBT_PORT}
+                user: ${DBT_USER}
+                password: ${DBT_PASSWORD}
+                dbname: ${DBT_DBNAME}
+                schema: ${DBT_SCHEMA}
+                threads: 4
+                keepalives_idle: 0
+                connect_timeout: 10
+                sslmode: prefer
+          EOF
+
+      - name: dbt debug
+        working-directory: dbt
+        run: dbt debug --profiles-dir ~/.dbt --target staging
+
+      - name: dbt build
+        working-directory: dbt
+        run: dbt build --profiles-dir ~/.dbt --target staging
+
+  dbt-production:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'production'
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_HOST: ${{ secrets.DBT_HOST_PRODUCTION }}
+      DBT_PORT: ${{ secrets.DBT_PORT_PRODUCTION }}
+      DBT_USER: ${{ secrets.DBT_USER_PRODUCTION }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD_PRODUCTION }}
+      DBT_DBNAME: ${{ secrets.DBT_DBNAME_PRODUCTION }}
+      DBT_SCHEMA: ${{ secrets.DBT_SCHEMA_PRODUCTION }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt-postgres
+        run: pip install dbt-postgres==1.9.0
+
+      - name: Create dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          de_assessment:
+            target: production
+            outputs:
+              production:
+                type: postgres
+                host: ${DBT_HOST}
+                port: ${DBT_PORT}
+                user: ${DBT_USER}
+                password: ${DBT_PASSWORD}
+                dbname: ${DBT_DBNAME}
+                schema: ${DBT_SCHEMA}
+                threads: 4
+                keepalives_idle: 0
+                connect_timeout: 10
+                sslmode: prefer
+          EOF
+
+      - name: dbt debug
+        working-directory: dbt
+        run: dbt debug --profiles-dir ~/.dbt --target production
+
+      - name: dbt build
+        working-directory: dbt
+        run: dbt build --profiles-dir ~/.dbt --target production
