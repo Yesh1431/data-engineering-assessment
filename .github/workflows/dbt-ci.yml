@@ -42,6 +42,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
       - name: Install dbt
         run: pip install dbt-postgres==1.9.0
 
@@ -53,13 +58,14 @@ jobs:
         env:
           PGPASSWORD: postgres
 
-      - name: Create raw schema and seed raw tables
-        run: psql -h 127.0.0.1 -U postgres -d assessment -f scripts/init.sql
+      - name: Create raw schema and tables
+        run: |
+          psql -h 127.0.0.1 -U postgres -d assessment -c "CREATE SCHEMA IF NOT EXISTS raw;"
         env:
           PGPASSWORD: postgres
 
-      - name: dbt debug
+      - name: Run dbt debug
         run: dbt debug --project-dir dbt --profiles-dir dbt --target dev
 
-      - name: dbt build
+      - name: Run dbt build
         run: dbt build --project-dir dbt --profiles-dir dbt --target dev
