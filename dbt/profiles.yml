@@ -1,7 +1,4 @@
 de_assessment:
-# dbt profiles.yml
-
-default:
   target: dev
   outputs:
     dev:
@@ -23,19 +20,3 @@ default:
       dbname: "{{ env_var('DBT_DBNAME', 'assessment') }}"
       schema: prod
       threads: 4
-      threads: 1
-      host: {env:DBT_HOST} # Replaced hardcoded host with environment variable
-      port: {env:DBT_PORT}
-      user: {env:DBT_USER}
-      password: {env:DBT_PASSWORD}
-      dbname: {env:DBT_DBNAME}
-      schema: {env:DBT_SCHEMA} # Replaced hardcoded schema with environment variable
-    prod:
-      type: postgres
-      threads: 2
-      host: de_postgres
-      port: 5432
-      user: prod_user
-      password: prod_password
-      dbname: prod_dbname
-      schema: prod_schema
