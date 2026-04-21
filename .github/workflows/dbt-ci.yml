@@ -1,0 +1,112 @@
+name: dbt CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: assessment
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d assessment"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DBT_HOST: 127.0.0.1
+      DBT_PORT: 5432
+      DBT_USER: postgres
+      DBT_PASSWORD: postgres
+      DBT_DBNAME: assessment
+      DBT_SCHEMA: ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt
+        run: pip install dbt-postgres==1.9.0
+
+      - name: Create raw schema
+        run: psql postgresql://postgres:postgres@127.0.0.1:5432/assessment -c "create schema if not exists raw;"
+
+      - name: Create sample raw tables
+        run: |
+          psql postgresql://postgres:postgres@127.0.0.1:5432/assessment <<'SQL'
+          create table if not exists raw.shopify_customers_file (
+            "ID" text,
+            "TAGS" text,
+            "APP_ID" text,
+            "ADDRESSES" jsonb,
+            "CREATED_AT" bigint,
+            "_PORTABLE_EXTRACTED" text,
+            "ADMIN_GRAPHQL_API_ID" text
+          );
+
+          create table if not exists raw.shopify_products_file (
+            "ID" text,
+            "TAGS" text,
+            "TITLE" text,
+            "APP_ID" text,
+            "VENDOR" text,
+            "OPTIONS" jsonb,
+            "VARIANTS" jsonb,
+            "PRODUCT_TYPE" text,
+            "_PORTABLE_EXTRACTED" text,
+            "ADMIN_GRAPHQL_API_ID" text
+          );
+
+          create table if not exists raw.shopify_orders_file (
+            "ID" text,
+            "NAME" text,
+            "EMAIL" text,
+            "CUSTOMER" jsonb,
+            "TOTAL_PRICE" numeric,
+            "SUBTOTAL_PRICE" numeric,
+            "TOTAL_TAX" numeric,
+            "CURRENCY" text,
+            "FINANCIAL_STATUS" text,
+            "FULFILLMENT_STATUS" text,
+            "CREATED_AT" bigint,
+            "PROCESSED_AT" bigint,
+            "CANCELLED_AT" text,
+            "LINE_ITEMS" jsonb,
+            "_PORTABLE_EXTRACTED" text,
+            "ADMIN_GRAPHQL_API_ID" text
+          );
+
+          insert into raw.shopify_customers_file values
+          ('CUST_1','vip','app_123','[]',1754750251,'2025-09-10T14:37:31','gid://shopify/Customer/CUST_1');
+
+          insert into raw.shopify_products_file values
+          ('PROD_1','gift','Socks','app_123','Umbrella Co','[]','[]','Home','2025-09-10T14:37:31','gid://shopify/Product/PROD_1');
+
+          insert into raw.shopify_orders_file values
+          ('ORD_1','#1001','test@example.com','{"id":"CUST_1"}',99.99,89.99,10.00,'USD','paid','fulfilled',1754750251,1754750251,null,'[]','2025-09-10T14:37:31','gid://shopify/Order/ORD_1');
+          SQL
+
+      - name: Run dbt
+        working-directory: dbt
+        run: |
+          dbt debug --profiles-dir . --target dev
+          dbt run --profiles-dir . --target dev
+          dbt test --profiles-dir . --target dev
