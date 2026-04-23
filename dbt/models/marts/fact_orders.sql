@@ -8,7 +8,7 @@ select
     order_id,
     order_name,
     app_id,
-    customer_json ->> 'id' as customer_id,
+    customer_json ->> 'ID' as customer_id,
     email,
     currency,
     total_price,
