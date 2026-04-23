@@ -1,13 +1,18 @@
+with products as (
+
+    select * from {{ ref('stg_products') }}
+
+)
+
 select
     product_id,
-    title,
+    app_id,
+    product_title,
     vendor,
     product_type,
     tags,
-    options,
-    variants,
-    app_id,
-    admin_graphql_api_id,
+    options_json,
+    variants_json,
     portable_extracted_at,
-    airbyte_extracted_at
-from {{ ref('stg_products') }}
+    admin_graphql_api_id
+from products

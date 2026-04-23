@@ -2,39 +2,49 @@ version: 2
 
 models:
   - name: stg_customers
+    description: "Staging model for customer records ingested from the raw Shopify customers source."
     columns:
       - name: customer_id
+        description: "Primary key for the customer."
         tests:
           - not_null
           - unique
 
   - name: stg_products
+    description: "Staging model for product records ingested from the raw Shopify products source."
     columns:
       - name: product_id
+        description: "Primary key for the product."
         tests:
           - not_null
           - unique
 
   - name: stg_orders
+    description: "Staging model for order records ingested from the raw Shopify orders source."
     columns:
       - name: order_id
+        description: "Primary key for the order."
         tests:
           - not_null
           - unique
+
       - name: financial_status
+        description: "Financial payment state of the order."
         tests:
           - accepted_values:
-              arguments:
-                values: ['paid', 'pending', 'refunded']
+              values: ['paid', 'pending', 'refunded']
+
       - name: fulfillment_status
+        description: "Fulfillment state of the order."
         tests:
           - accepted_values:
-              arguments:
-                values: ['fulfilled', 'partial', 'unfulfilled']
+              values: ['fulfilled', 'partial', 'unfulfilled']
 
   - name: fact_orders
+    description: "Order-level fact mart with one row per order. Grain: one row for each order_id."
     columns:
       - name: order_id
+        description: "Unique identifier for each order."
         tests:
           - not_null
           - unique

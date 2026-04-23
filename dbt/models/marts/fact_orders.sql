@@ -1,17 +1,29 @@
+with orders as (
+
+    select * from {{ ref('stg_orders') }}
+
+)
+
 select
     order_id,
-    customer_id,
     order_name,
-    order_number,
+    app_id,
+    customer_json ->> 'id' as customer_id,
+    email,
     currency,
-    financial_status,
-    fulfillment_status,
     total_price,
     subtotal_price,
     total_tax,
     total_discounts,
-    created_at_utc,
-    updated_at_utc,
+    financial_status,
+    fulfillment_status,
+    order_number,
+    order_created_at,
+    order_updated_at,
+    processed_at,
     cancelled_at,
-    processed_at
-from {{ ref('stg_orders') }}
+    customer_json,
+    line_items_json,
+    portable_extracted_at,
+    admin_graphql_api_id
+from orders
