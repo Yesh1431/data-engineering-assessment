@@ -344,24 +344,95 @@ Suggested PR sections:
 - Assumptions
 - Validation results
 
-## GitHub Actions and Secrets
+## GitHub Actions CI/CD
 
-For CI/CD workflows, configure repository secrets such as:
+This project includes a GitHub Actions workflow to validate dbt models in staging and to support scheduled production-style runs.
 
-- `POSTGRES_HOST`
-- `POSTGRES_PORT`
-- `POSTGRES_DB`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
+### Workflow behavior
 
-If Airbyte automation is included, add any required Airbyte credentials or host secrets as well.
+The workflow is defined in:
 
-Typical workflow usage:
+`.github/workflows/dbt-ci.yml`
 
-- Run dbt debug
-- Run dbt run for target environment
-- Optionally run dbt test if tests are configured and selected in workflow
+It contains two jobs:
 
+#### 1. Staging job
+Purpose:
+Validate dbt changes before merge.
+
+When it runs:
+- On pull requests to `main`
+- On manual trigger through `workflow_dispatch`
+
+What it does:
+- Starts a PostgreSQL service
+- Initializes the `raw` schema and seed tables using `scripts/init.sql`
+- Runs `dbt debug` against the `dev` target
+- Runs `dbt build` against the `dev` target
+
+Target/schema used:
+- dbt target: `dev`
+- schema resolved through `DBT_SCHEMA=dev`
+
+#### 2. Production job
+Purpose:
+Run the same dbt project in a production-style schema on a schedule.
+
+When it runs:
+- On the configured GitHub Actions schedule
+- Optionally when manually adapted for production validation
+
+What it does:
+- Starts a PostgreSQL service
+- Initializes the `raw` schema and seed tables using `scripts/init.sql`
+- Runs `dbt debug` against the `prod` target
+- Runs `dbt build` against the `prod` target
+
+Target/schema used:
+- dbt target: `prod`
+- schema resolved through `DBT_SCHEMA=prod`
+
+### Staging vs Production
+
+Staging:
+- Used for pull request validation and local development checks
+- Writes into the development schema
+- Helps verify model logic, tests, and transformations before merge
+
+Production:
+- Used for scheduled execution
+- Writes into the production schema
+- Represents production-style execution behavior for the assessment
+
+### Environment variables / secrets
+
+The workflow uses environment variables for database connectivity:
+
+- `DBT_HOST`
+- `DBT_PORT`
+- `DBT_USER`
+- `DBT_PASSWORD`
+- `DBT_DBNAME`
+- `DBT_SCHEMA`
+
+For this assessment, the workflow provisions PostgreSQL inside GitHub Actions, so these values are set directly in the workflow job environment.
+
+For a real deployment, move these values to GitHub repository secrets and reference them in the workflow.
+
+Example production-ready secret set:
+- `DBT_HOST`
+- `DBT_PORT`
+- `DBT_USER`
+- `DBT_PASSWORD`
+- `DBT_DBNAME`
+- `DBT_SCHEMA`
+
+### Notes
+
+- Pull request validation runs against `dev`
+- Scheduled production runs use `prod`
+- `scripts/init.sql` prepares the raw schema and source tables needed by dbt
+- dbt profiles are environment-variable driven so the same project can run locally and in CI
 ## Assumptions
 
 Assumptions made during implementation:
